@@ -1,0 +1,46 @@
+---
+
+- name: "Read default config file"
+  ansible.builtin.set_fact:
+    package_override_default_var_data: "{{ lookup('ansible.builtin.template', 'defaults/main.yml') | from_yaml }}"
+
+- name: "Set default and override variable"
+  ansible.builtin.set_fact:
+    package_proxy_addr: >-
+      {{ 
+        lookup('ansible.builtin.vars', 'package_proxy_addr', default='') 
+        | default(package_override_default_var_data.package_proxy_addr, true) 
+      }}
+    package_http_proxy: >-
+      {{ 
+        lookup('ansible.builtin.vars', 'package_http_proxy', default='') 
+        | default(package_override_default_var_data.package_http_proxy, true) 
+      }}
+    package_https_proxy: >-
+      {{ 
+        lookup('ansible.builtin.vars', 'package_https_proxy', default='') 
+        | default(package_override_default_var_data.package_https_proxy, true) 
+      }}
+    package_remove_proxy_at_end: >-
+      {{ 
+        lookup('ansible.builtin.vars', 'package_remove_proxy_at_end', default=false) 
+        | default(package_override_default_var_data.package_remove_proxy_at_end, true) 
+      }}
+    package_force_remote_proxy: >-
+      {{ 
+        lookup('ansible.builtin.vars', 'package_force_remote_proxy', default=false) 
+        | default(package_override_default_var_data.package_force_remote_proxy, true) 
+      }}
+
+- name: "Add apt proxy for http and https"
+  ansible.builtin.set_fact:
+    package_http_proxy: "{{ package_proxy_addr }}"
+    package_https_proxy: "{{ package_proxy_addr }}"
+  when:
+    - package_proxy_addr != ''
+    - package_http_proxy == ''
+    - package_https_proxy == ''
+
+- name: "Enable proxy mode if one of http or https proxy is set"
+  ansible.builtin.set_fact:
+    package_use_proxy: "{{ True if package_http_proxy != '' or package_https_proxy != '' else False }}"

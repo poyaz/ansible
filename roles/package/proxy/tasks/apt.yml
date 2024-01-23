@@ -1,0 +1,39 @@
+---
+
+- name: "Forcing to remove apt proxy"
+  ansible.builtin.lineinfile:
+    state: absent
+    path: /etc/apt/apt.conf
+    regexp: "{{ item }}"
+  loop:
+    - "^Acquire::http::proxy.+;"
+    - "^Acquire::https::proxy.+;"
+  when: package_force_remote_proxy | bool
+
+- name: "Check http::proxy in apt configuration files"
+  raw: "apt-config dump | grep -qsi 'Acquire::http::proxy'"
+  register: reg_package_http_proxy
+  failed_when: false
+  changed_when: false
+  check_mode: false
+
+- name: "Add http_proxy to /etc/apt/apt.conf if http proxy is defined"
+  raw: "echo 'Acquire::http::proxy \"{{ package_http_proxy }}\";' >> {{ package_apt_conf_proxy_file }}"
+  when:
+    - package_http_proxy is defined
+    - package_http_proxy != ''
+    - reg_package_http_proxy.rc != 0
+
+- name: "Check https::proxy in apt configuration files"
+  raw: "apt-config dump | grep -qsi 'Acquire::https::proxy'"
+  register: reg_package_https_proxy
+  failed_when: false
+  changed_when: false
+  check_mode: false
+
+- name: "Add https_proxy to /etc/apt/apt.conf if https proxy is defined"
+  raw: "echo 'Acquire::https::proxy \"{{ package_https_proxy }}\";' >> {{ package_apt_conf_proxy_file }}"
+  when:
+    - package_https_proxy is defined
+    - package_https_proxy != ''
+    - reg_package_https_proxy.rc != 0

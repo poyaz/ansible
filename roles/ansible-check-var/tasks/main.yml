@@ -1,0 +1,32 @@
+---
+
+- name: "Check variable not set on any host"
+  fail:
+    msg: >-
+      You don't have permission to fill system variable '{{ item_keys | first }}' on host '{{ item.inventory_hostname }}'
+  with_items:
+    - "{{ ansible_play_hosts | map('extract', hostvars) | list }}"
+  loop_control:
+    label: "{{ item.inventory_hostname }}"
+  when:
+    - item_keys| list | length > 0
+  vars:
+    item_keys: >-
+      {{
+        item.keys()
+          | reject('search', '^ansible_.+$')
+          | reject('search', '^inventory_.+$')
+          | reject('search', '^group_names$')
+          | reject('search', '^playbook_dir$')
+          | reject('search', '^groups$')
+          | reject('search', '^omit$')
+          | reject('search', '^host$')
+          | reject('search', '^gather_subset$')
+          | reject('search', '^module_setup$')
+          | reject('search', '^discovered_interpreter_python$')
+          | reject('search', '^tls_insecure$')
+          | reject('search', '^become_user')
+          | reject('search', '^in_.+$')
+      }}
+  delegate_to: localhost
+  run_once: true

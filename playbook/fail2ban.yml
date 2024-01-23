@@ -1,0 +1,55 @@
+### Input variables
+###################
+## in_fail2ban_log_level:
+## in_fail2ban_log_target:
+## in_fail2ban_ignore_self:
+## in_fail2ban_ignore_ips_raw:
+## in_fail2ban_ignore_ips:
+## in_fail2ban_ban_time:
+## in_fail2ban_find_time:
+## in_fail2ban_max_retry:
+## in_fail2ban_configuration:
+## in_fail2ban_jail_configuration:
+
+---
+
+- hosts: "{{ host }}"
+  become: yes
+  become_user: root
+
+  gather_facts: yes
+  gather_subset:
+    - min
+
+  pre_tasks:
+    - include_role:
+        name: ansible-check-var
+        tasks_from: main
+        apply:
+          delegate_to: "localhost"
+
+    - name: "Create fact"
+      ansible.builtin.set_fact:
+        fail2ban_ignore_ips: >-
+          {%- set ns = namespace() -%}
+          {%- set ns.list = [] -%}
+          {%- if in_fail2ban_ignore_ips_raw is defined and in_fail2ban_ignore_ips_raw is string and in_fail2ban_ignore_ips_raw | length > 0 -%}
+            {%- set ns.list = ns.list + in_fail2ban_ignore_ips_raw.split(",") -%}
+          {%- endif -%}
+          {%- if in_fail2ban_ignore_ips is defined and in_fail2ban_ignore_ips is sequence and in_fail2ban_ignore_ips is not mapping and in_fail2ban_ignore_ips is not string -%}
+            {%- set ns.list = ns.list + in_fail2ban_ignore_ips -%}
+          {%- endif -%}
+          {{ ns.list | map('string') | unique | sort }}
+
+  roles:
+    - role: fail2ban/fail2ban
+      vars:
+        fail2ban_log_level: "{{ in_fail2ban_log_level }}"
+        fail2ban_log_target: "{{ in_fail2ban_log_target }}"
+        fail2ban_ignore_self: "{{ in_fail2ban_ignore_self }}"
+        fail2ban_ban_time: "{{ in_fail2ban_ban_time }}"
+        fail2ban_find_time: "{{ in_fail2ban_find_time }}"
+        fail2ban_max_retry: "{{ in_fail2ban_max_retry }}"
+        fail2ban_configuration: "{{ in_fail2ban_configuration }}"
+        fail2ban_jail_configuration: "{{ in_fail2ban_jail_configuration }}"
+        fail2ban_ban_action: "{{ in_fail2ban_ban_action }}"

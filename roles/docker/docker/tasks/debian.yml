@@ -1,0 +1,75 @@
+---
+
+- name: "Get debian architecture"
+  raw: "dpkg --print-architecture"
+  register: reg_docker_debian_architect
+  failed_when: false
+  changed_when: false
+  check_mode: false
+
+- name: "Remove exist docker repository from sources list"
+  ansible.builtin.apt_repository:
+    repo: "deb [arch={{ reg_docker_debian_architect['stdout'] | trim }} signed-by={{ docker_gpg_file }}] https://download.docker.com/linux/debian {{ ansible_facts['lsb']['codename'] }} stable"
+    state: absent
+
+- name: "Run the equivalent of 'apt-get update' as a separate step"
+  ansible.builtin.apt:
+    update_cache: yes
+
+- name: "Install docker dependencies"
+  ansible.builtin.package:
+    name: "{{ docker_dependencies_packages }}"
+    state: present
+
+- name: "Install keyrings dir for apt"
+  raw: "install -m 0755 -d /etc/apt/keyrings"
+
+- name: "Check exist docker gpg file"
+  ansible.builtin.stat:
+    path: "{{ docker_gpg_file }}"
+  register: reg_docker_gpg_file_stat
+
+- name: "Validate docker gpg file"
+  shell: "apt-key --keyring {{ docker_gpg_file }} list 2> /dev/null | tail -n +2 | { grep docker || true; }"
+  register: reg_docker_validate_gpg
+  when:
+    - reg_docker_gpg_file_stat.stat.exists is defined
+    - reg_docker_gpg_file_stat.stat.exists
+
+- name: "Install docker gpg (If gpg file not exist or fail to use)"
+  block:
+
+    - name: "Download docker gpg key"
+      ansible.builtin.get_url:
+        url: https://download.docker.com/linux/debian/gpg
+        dest: "{{ docker_tmp_gpg_file }}"
+        mode: "0644"
+        use_proxy: "{{ docker_use_proxy | bool }}"
+      environment:
+        http_proxy: "{{ docker_http_proxy }}"
+        https_proxy: "{{ docker_https_proxy }}"
+
+    - name: "De-armor Docker GPG key"
+      shell: "cat {{ docker_tmp_gpg_file }} | gpg --dearmor --batch --yes -o {{ docker_gpg_file }}"
+      no_log: true
+      notify: "remove temp docker"
+
+  when: ('skipped' in reg_docker_validate_gpg and reg_docker_validate_gpg.skipped | bool)
+    or (reg_docker_validate_gpg.rc == 0 and reg_docker_validate_gpg.stdout_lines | length == 0)
+
+- name: "Add docker repository"
+  ansible.builtin.apt_repository:
+    repo: "deb [arch={{ reg_docker_debian_architect['stdout'] | trim }} signed-by={{ docker_gpg_file }}] https://download.docker.com/linux/debian {{ ansible_facts['lsb']['codename'] }} stable"
+    filename: "{{ docker_repo_name }}"
+    state: present
+  when:
+    reg_docker_debian_architect.rc == 0
+
+- name: "Run the equivalent of 'apt-get update' as a separate step"
+  ansible.builtin.apt:
+    update_cache: yes
+
+- name: "Install docker"
+  ansible.builtin.package:
+    name: "{{ docker_main_packages }}"
+    state: present

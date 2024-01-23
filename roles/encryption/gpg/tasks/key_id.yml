@@ -1,0 +1,4 @@
+---
+
+- name: "Ensure a key is present in the db"
+  shell: "gpg --list-keys {{ enc_gpg_public_key_id }} >/dev/null 2>&1"

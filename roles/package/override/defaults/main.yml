@@ -1,0 +1,8 @@
+---
+
+package_proxy_addr: ""
+package_http_proxy: ""
+package_https_proxy: ""
+
+package_remove_proxy_at_end: false
+package_force_remote_proxy: false

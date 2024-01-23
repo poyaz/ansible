@@ -1,0 +1,115 @@
+---
+
+argument_specs:
+  main:
+    short_description: "The tasks entry point for install fail2ban."
+    options:
+      fail2ban_log_level:
+        type: "str"
+        required: false
+        description: "The log level mode"
+        default: "INFO"
+        choices:
+          - "CRITICAL"
+          - "ERROR"
+          - "WARNING"
+          - "NOTICE"
+          - "INFO"
+          - "DEBUG"
+
+      fail2ban_log_target:
+        type: "str"
+        required: false
+        description: "The log target file"
+        default: "/var/log/fail2ban.log"
+
+      fail2ban_ignore_self:
+        type: "bool"
+        required: false
+        description: "Ignore self ban"
+        default: true
+
+      fail2ban_ignore_ips:
+        type: "list"
+        required: false
+        description: "The log target file"
+        elements: "str"
+        default:
+          - "127.0.0.1/8"
+          - "::1"
+
+      fail2ban_ban_time:
+        type: "int"
+        required: false
+        description: "The ban time of ip (second)"
+        default: 10800
+
+      fail2ban_find_time:
+        type: "int"
+        required: false
+        description: "The scanning time for find fail retries (second)"
+        default: 600
+
+      fail2ban_max_retry:
+        type: "int"
+        required: false
+        description: "The maximum fail retry"
+        default: 3
+
+      fail2ban_configuration:
+        type: "list"
+        required: false
+        description: "The fail2ban configuration"
+        elements: "dict"
+        options:
+          option:
+            type: "str"
+            required: true
+          value:
+            type: "raw"
+            required: true
+          section:
+            type: "str"
+            required: true
+
+      fail2ban_jail_configuration:
+        type: "list"
+        required: false
+        description: "The fail2ban jail configuration"
+        elements: "dict"
+        options:
+          section:
+            type: "str"
+            required: true
+          option:
+            type: "str"
+            required: true
+          value:
+            type: "raw"
+            required: true
+
+      fail2ban_action_nftables_configuration:
+        type: "list"
+        required: false
+        description: "The fail2ban action configuration for nftables"
+        elements: "dict"
+        options:
+          section:
+            type: "str"
+            required: true
+          option:
+            type: "str"
+            required: true
+          value:
+            type: "raw"
+            required: true
+
+      fail2ban_ban_action:
+        type: "str"
+        required: false
+        description: "Which execute service uses for policy"
+        default: "auto"
+        choices:
+          - "auto"
+          - "iptables"
+          - "nftables"

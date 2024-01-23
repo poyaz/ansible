@@ -1,0 +1,5 @@
+---
+
+docker_proxy_addr: ""
+docker_http_proxy: ""
+docker_https_proxy: ""

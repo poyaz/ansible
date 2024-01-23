@@ -1,0 +1,8 @@
+#!/usr/sbin/nft -f
+
+# Use ip as fail2ban doesn't support ipv6 yet
+table ip fail2ban {
+    chain input {
+        type filter hook input priority 100;
+    }
+}

@@ -1,0 +1,13 @@
+---
+
+- name: "Import gpg public file"
+  shell: "gpg --import {{ in_enc_gpg_public_key_path | quote }}"
+  register: reg_enc_gpg_import_file
+  no_log: true
+
+- name: "set facts for each indexer instance"
+  ansible.builtin.set_fact:
+    enc_gpg_public_key_id: "{{ reg_enc_gpg_import_file.stderr | regex_findall('gpg:\\s+key\\s+([a-zA-Z0-9]+):') | first }}"
+  when:
+    - reg_enc_gpg_import_file.rc == 0
+    - reg_enc_gpg_import_file.stderr | regex_search('gpg:\\s+key\\s+[a-zA-Z0-9]+:')

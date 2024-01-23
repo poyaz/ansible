@@ -1,0 +1,3 @@
+---
+
+package_apt_conf_proxy_file: "/etc/apt/apt.conf"

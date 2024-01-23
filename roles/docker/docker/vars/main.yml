@@ -1,0 +1,17 @@
+---
+
+docker_dependencies_packages:
+  - ca-certificates
+  - curl
+  - gnupg
+
+docker_main_packages:
+  - docker-ce
+  - docker-ce-cli
+  - containerd.io
+  - docker-buildx-plugin
+  - docker-compose-plugin
+
+docker_tmp_gpg_file: "/tmp/docker.gpg"
+docker_gpg_file: "/etc/apt/keyrings/docker.gpg"
+docker_repo_name: "docker"

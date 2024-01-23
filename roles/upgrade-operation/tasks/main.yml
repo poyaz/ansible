@@ -1,0 +1,20 @@
+---
+
+- block:
+    - name: "Debian/Ubuntu | Perform a dist-upgrade-operation"
+      ansible.builtin.apt:
+        upgrade: dist
+        update_cache: yes
+
+    - name: "Debian/Ubuntu | Check if a reboot is required"
+      ansible.builtin.stat:
+        path: "/var/run/reboot-required"
+        get_md5: no
+      register: register_upgrade_reboot_required_file
+
+    - name: "Debian/Ubuntu | Reboot the server (if required)"
+      ansible.builtin.reboot:
+        reboot_timeout: 600
+      when: register_upgrade_reboot_required_file.stat.exists == true
+
+  when: ansible_os_family == 'Debian'

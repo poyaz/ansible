@@ -1,0 +1,6 @@
+---
+
+- name: "Encrypt data"
+  ansible.builtin.command:
+    cmd: "gpg --encrypt --always-trust --batch --yes --armor --recipient {{ enc_gpg_public_key_id }} -o {{ enc_gpg_dest | quote }}"
+    stdin: "{{ enc_raw_data }}"

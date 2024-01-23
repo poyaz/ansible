@@ -1,0 +1,31 @@
+---
+
+- name: "Alpine | Install dependency"
+  community.general.packaging.os.apk:
+    name:
+      - gnupg
+    state: present
+  when: ansible_os_family == 'Alpine'
+  become: true
+
+- name: "Debian/Ubuntu | Install gpg dependency"
+  apt:
+    name:
+      - gnupg
+    state: present
+  when: ansible_os_family == 'Debian'
+  become: true
+
+- ansible.builtin.include_role:
+    name: "{{ role_name }}"
+    tasks_from: "{{ enc_gpg_type }}"
+
+- debug: var=enc_gpg_public_key_id
+
+- ansible.builtin.include_role:
+    name: "{{ role_name }}"
+    tasks_from: "enc_{{ enc_source_type }}"
+
+- name: "Fill enc_gpg_dest for output data"
+  ansible.builtin.set_fact:
+    enc_gpg_dest: "{{ enc_gpg_dest | default(enc_file_path + '.asc', true) }}"

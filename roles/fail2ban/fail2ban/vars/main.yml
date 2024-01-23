@@ -1,0 +1,60 @@
+---
+
+fail2ban_packages:
+  - fail2ban
+
+fail2ban_systemd_name: fail2ban.service
+fail2ban_nftables_systemd_name: nftables.service
+
+fail2ban_base_configuration:
+  - section: "Definition"
+    option: "loglevel"
+    value: "{{ fail2ban_log_level }}"
+  - section: "Definition"
+    option: "logtarget"
+    value: "{{ fail2ban_log_target }}"
+  - section: "DEFAULT"
+    option: "ignoreip"
+    value: "{{ fail2ban_ignore_ips | join(' ') }}"
+
+fail2ban_base_jail_configuration:
+  - section: "DEFAULT"
+    option: "ignoreself"
+    value: "{{ fail2ban_ignore_self }}"
+  - section: "DEFAULT"
+    option: "bantime"
+    value: "{{ fail2ban_ban_time }}"
+  - section: "DEFAULT"
+    option: "findtime"
+    value: "{{ fail2ban_find_time }}"
+  - section: "DEFAULT"
+    option: "maxretry"
+    value: "{{ fail2ban_max_retry }}"
+
+fail2ban_base_jail_nftables_configuration:
+  - section: "DEFAULT"
+    option: "banaction"
+    value: "nftables-multiport"
+  - section: "DEFAULT"
+    option: "chain"
+    value: "input"
+
+fail2ban_base_action_nftables_configuration:
+  - section: "Init"
+    option: "nftables_family"
+    value: "ip"
+  - section: "Init"
+    option: "nftables_table"
+    value: "fail2ban"
+  - section: "Init"
+    option: "blocktype"
+    value: "drop"
+  - section: "Init"
+    option: "nftables_set_prefix"
+    value: ""
+
+
+fail2ban_nftables_config_path: "/etc/nftables.conf"
+fail2ban_nftables_include_config_dir: "/etc/nftables.d"
+fail2ban_nftables_config_policy_file_name: "fail2ban.conf"
+fail2ban_nftables_config_policy_file_path: "{{ [fail2ban_nftables_include_config_dir, fail2ban_nftables_config_policy_file_name] | path_join | realpath }}"

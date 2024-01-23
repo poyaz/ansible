@@ -1,0 +1,21 @@
+---
+
+- ansible.builtin.include_role:
+    name: "{{ role_name }}"
+    tasks_from: "debian"
+  when:
+    - ansible_facts.os_family == 'Debian'
+    - ansible_facts.lsb.id == 'Debian'
+
+- ansible.builtin.include_role:
+    name: "{{ role_name }}"
+    tasks_from: "ubuntu"
+  when:
+    - ansible_facts.os_family == 'Debian'
+    - ansible_facts.lsb.id == 'Ubuntu'
+
+- name: "Start and enable docker"
+  ansible.builtin.systemd:
+    name: "docker"
+    state: started
+    enabled: true

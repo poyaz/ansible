@@ -1,0 +1,7 @@
+---
+
+- name: "Remove temp docker.gpg"
+  ansible.builtin.file:
+    path: "{{ docker_tmp_gpg_file }}"
+    state: absent
+  listen: "remove temp docker"

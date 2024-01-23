@@ -1,0 +1,36 @@
+---
+
+- name: "Read default config file"
+  ansible.builtin.set_fact:
+    docker_override_default_var_data: "{{ lookup('ansible.builtin.template', 'defaults/main.yml') | from_yaml }}"
+
+- name: "Set default and override variable"
+  ansible.builtin.set_fact:
+    docker_proxy_addr: >-
+      {{ 
+        lookup('ansible.builtin.vars', 'docker_proxy_addr', default='') 
+        | default(docker_override_default_var_data.docker_proxy_addr, true) 
+      }}
+    docker_http_proxy: >-
+      {{ 
+        lookup('ansible.builtin.vars', 'docker_http_proxy', default='') 
+        | default(docker_override_default_var_data.docker_http_proxy, true) 
+      }}
+    docker_https_proxy: >-
+      {{ 
+        lookup('ansible.builtin.vars', 'docker_https_proxy', default='') 
+        | default(docker_override_default_var_data.docker_https_proxy, true) 
+      }}
+
+- name: "Add apt proxy for http and https"
+  ansible.builtin.set_fact:
+    docker_http_proxy: "{{ docker_proxy_addr }}"
+    docker_https_proxy: "{{ docker_proxy_addr }}"
+  when:
+    - docker_proxy_addr != ''
+    - docker_http_proxy == ''
+    - docker_https_proxy == ''
+
+- name: "Enable proxy mode if one of http or https proxy is set"
+  ansible.builtin.set_fact:
+    docker_use_proxy: "{{ True if docker_http_proxy != '' or docker_https_proxy != '' else False }}"

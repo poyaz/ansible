@@ -1,0 +1,32 @@
+---
+
+argument_specs:
+  main:
+    short_description: "The tasks entry point for set proxy."
+    options:
+      package_proxy_addr:
+        type: "str"
+        required: false
+        description: "The proxy address (override http and https proxy)"
+
+      package_http_proxy:
+        type: "str"
+        required: false
+        description: "The http proxy address"
+
+      package_https_proxy:
+        type: "str"
+        required: false
+        description: "The http proxy address"
+
+      package_remove_proxy_at_end:
+        type: "bool"
+        required: false
+        description: "Remove proxy from all config files"
+        default: false
+
+      package_force_remote_proxy:
+        type: "bool"
+        required: false
+        description: "Forcing to remove proxy from all config files"
+        default: false

@@ -1,0 +1,13 @@
+---
+
+- name: "Remove apt proxy"
+  ansible.builtin.lineinfile:
+    state: absent
+    path: /etc/apt/apt.conf
+    regexp: "{{ item }}"
+  loop:
+    - "^Acquire::http::proxy \"{{ package_http_proxy }}\";"
+    - "^Acquire::https::proxy \"{{ package_https_proxy }}\";"
+  when:
+    - ansible_facts.os_family == 'Debian'
+  listen: "remove apt proxy"

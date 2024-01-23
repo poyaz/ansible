@@ -1,0 +1,29 @@
+---
+
+- name: "default set"
+  ansible.builtin.set_fact:
+    enc_gpg_dest: "{{ lookup('ansible.builtin.vars', 'enc_gpg_dest', default='') }}"
+    enc_remove_source: "{{ lookup('ansible.builtin.vars', 'enc_remove_source', default=false) }}"
+
+- name: "Get stats of a file"
+  stat:
+    path: "{{ enc_file_path }}"
+  register: reg_enc_file_stat
+
+- name: "Encrypt data with custom destination path"
+  ansible.builtin.command:
+    cmd: "gpg --encrypt --always-trust --batch --yes --armor --recipient {{ enc_gpg_public_key_id }} -o {{ enc_gpg_dest | quote }} {{ enc_file_path | quote }}"
+  when:
+    - reg_enc_file_stat.stat.exists
+    - enc_gpg_dest != ''
+  notify:
+    - "delete encryption source"
+
+- name: "Encrypt data without destination path (generate default destination path)"
+  ansible.builtin.command:
+    cmd: "gpg --encrypt --always-trust --batch --yes --armor --recipient {{ enc_gpg_public_key_id }} {{ enc_file_path | quote }}"
+  when:
+    - reg_enc_file_stat.stat.exists
+    - enc_gpg_dest == ''
+  notify:
+    - "delete encryption source"

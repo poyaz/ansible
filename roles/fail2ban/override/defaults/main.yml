@@ -1,0 +1,22 @@
+fail2ban_log_level: "INFO"
+fail2ban_log_target: "/var/log/fail2ban.log"
+
+fail2ban_ignore_self: true
+fail2ban_ignore_ips:
+  - "127.0.0.1/8"
+  - "::1"
+
+# In seconds
+fail2ban_ban_time: 10800
+fail2ban_find_time: 600
+
+fail2ban_max_retry: 3
+
+fail2ban_configuration: [ ]
+fail2ban_jail_configuration: [ ]
+fail2ban_action_nftables_configuration: [ ]
+
+# Path to directory containing filters to copy in filter.d
+# fail2ban_filterd_path:
+
+fail2ban_ban_action: "auto"

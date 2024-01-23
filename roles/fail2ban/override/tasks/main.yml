@@ -1,0 +1,63 @@
+---
+
+- name: "read default config file"
+  ansible.builtin.set_fact:
+    fail2ban_override_default_var_data: "{{ lookup('ansible.builtin.template', 'defaults/main.yml') | from_yaml }}"
+
+- name: "default set and override variable"
+  ansible.builtin.set_fact:
+    fail2ban_log_level: >-
+      {{ 
+        lookup('ansible.builtin.vars', 'fail2ban_log_level', default='') 
+        | default(fail2ban_override_default_var_data.fail2ban_log_level, true) 
+      }}
+    fail2ban_log_target: >-
+      {{ 
+        lookup('ansible.builtin.vars', 'fail2ban_log_target', default='') 
+        | default(fail2ban_override_default_var_data.fail2ban_log_target, true) 
+      }}
+    fail2ban_ignore_self: >-
+      {{ 
+        lookup('ansible.builtin.vars', 'fail2ban_ignore_self', default=false) 
+        | default(fail2ban_override_default_var_data.fail2ban_ignore_self, true) 
+      }}
+    fail2ban_ignore_ips: >-
+      {{ 
+        lookup('ansible.builtin.vars', 'fail2ban_ignore_ips', default='') 
+        | default(fail2ban_override_default_var_data.fail2ban_ignore_ips, true) 
+      }}
+    fail2ban_ban_time: >-
+      {{ 
+        lookup('ansible.builtin.vars', 'fail2ban_ban_time', default='') 
+        | default(fail2ban_override_default_var_data.fail2ban_ban_time, true)
+      }}
+    fail2ban_find_time: >-
+      {{ 
+        lookup('ansible.builtin.vars', 'fail2ban_find_time', default='') 
+        | default(fail2ban_override_default_var_data.fail2ban_find_time, true)
+      }}
+    fail2ban_max_retry: >-
+      {{ 
+        lookup('ansible.builtin.vars', 'fail2ban_max_retry', default='') 
+        | default(fail2ban_override_default_var_data.fail2ban_max_retry, true)
+      }}
+    fail2ban_configuration: >-
+      {{ 
+        lookup('ansible.builtin.vars', 'fail2ban_configuration', default=[]) 
+        | default(fail2ban_override_default_var_data.fail2ban_configuration, true)
+      }}
+    fail2ban_jail_configuration: >-
+      {{ 
+        lookup('ansible.builtin.vars', 'fail2ban_jail_configuration', default=[]) 
+        | default(fail2ban_override_default_var_data.fail2ban_jail_configuration, true)
+      }}
+    fail2ban_action_nftables_configuration: >-
+      {{ 
+        lookup('ansible.builtin.vars', 'fail2ban_action_nftables_configuration', default=[]) 
+        | default(fail2ban_override_default_var_data.fail2ban_action_nftables_configuration, true)
+      }}
+    fail2ban_ban_action: >-
+      {{ 
+        lookup('ansible.builtin.vars', 'fail2ban_ban_action', default='') 
+        | default(fail2ban_override_default_var_data.fail2ban_ban_action, true)
+      }}

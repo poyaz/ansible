@@ -1,0 +1,7 @@
+---
+
+- name: "delete encryption source"
+  ansible.builtin.file:
+    path: "{{ enc_file_path }}"
+    state: absent
+  when: enc_remove_source | bool

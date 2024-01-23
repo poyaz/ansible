@@ -1,0 +1,17 @@
+---
+
+- name: "restart fail2ban (with systemd)"
+  ansible.builtin.systemd:
+    name: "{{ fail2ban_systemd_name }}"
+    state: restarted
+  listen: "restart fail2ban"
+
+- name: "verify nftables"
+  ansible.builtin.shell: "nft -f {{ fail2ban_nftables_config_path | quote }} -c"
+  listen: "verify nftables"
+
+- name: "restart nftables (with systemd)"
+  ansible.builtin.systemd:
+    name: "{{ fail2ban_nftables_systemd_name }}"
+    state: restarted
+  listen: "restart nftables"

@@ -1,0 +1,6 @@
+---
+
+- ansible.builtin.include_role:
+    name: "{{ role_name }}"
+    tasks_from: "apt"
+  when: package_use_proxy | bool

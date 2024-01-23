@@ -1,0 +1,77 @@
+---
+
+- name: "Stat nftables configuration directory"
+  ansible.builtin.stat:
+    path: "{{ fail2ban_nftables_include_config_dir | quote }}"
+  register: reg_fail2ban_nftables_dir
+
+- name: "Create a directory for nfttables if it does not exist"
+  ansible.builtin.file:
+    path: "{{ fail2ban_nftables_include_config_dir | quote }}"
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+  when:
+    - reg_fail2ban_nftables_dir.stat.exists is defined
+    - not reg_fail2ban_nftables_dir.stat.exists
+
+- name: "Add fail2ban table for nftables configuration file"
+  template:
+    src: "templates/nftables-fail2ban.conf.j2"
+    dest: "{{ fail2ban_nftables_config_policy_file_path | quote }}"
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: "Check if fail2ban table included in nftables"
+  ansible.builtin.lineinfile:
+    state: absent
+    path: "{{ fail2ban_nftables_config_path | quote }}"
+    regexp: "\"{{ fail2ban_nftables_config_policy_file_path }}\"$"
+  check_mode: true
+  changed_when: false
+  register: reg_fail2ban_include_policy
+
+- name: "Include fail2ban config in nftalbes if not exist"
+  ansible.builtin.lineinfile:
+    state: present
+    path: "{{ fail2ban_nftables_config_path | quote }}"
+    insertafter: "EOF"
+    line: "\ninclude \"{{ fail2ban_nftables_config_policy_file_path }}\""
+  when: reg_fail2ban_include_policy.found == 0
+  notify:
+    - verify nftables
+    - restart nftables
+
+- name: "Configure action nftables-common"
+  community.general.ini_file:
+    path: "/etc/fail2ban/action.d/nftables-common.local"
+    section: "{{ item.section }}"
+    option: "{{ item.option }}"
+    value: "{{ item.value }}"
+    mode: "0640"
+  loop: "{{ fail2ban_base_action_nftables_configuration + fail2ban_action_nftables_configuration }}"
+  loop_control:
+    label: "{{ item.option }}"
+  notify:
+    - restart fail2ban
+
+- name: "Create a fail2ban service override directory"
+  file:
+    owner: root
+    group: root
+    mode: 0755
+    path: "/etc/systemd/system/{{ fail2ban_systemd_name + '.service' if fail2ban_systemd_name is not match('.+\\.service') else fail2ban_systemd_name }}.d"
+    state: directory
+
+- name: "Enable fail2ban dependency to nftables"
+  ansible.builtin.template:
+    src: "templates/fail2ban-systemd-dep-nftables.conf.j2"
+    dest: "/etc/systemd/system/{{ fail2ban_systemd_name + '.service' if fail2ban_systemd_name is not match('.+\\.service') else fail2ban_systemd_name }}.d/001-nftables.conf"
+    owner: root
+    group: root
+
+- name: "Force systemd to reread configs after change teleport unit file"
+  ansible.builtin.systemd:
+    daemon_reload: true

@@ -1,0 +1,102 @@
+---
+
+- block:
+    - name: "Check which one of 'iptables' or 'nftables' should be use"
+      ansible.builtin.shell:  >-
+        bash 2> /dev/null <<-EOF
+          if command -v nft &> /dev/null && [ $(nft list tables | wc -l) -ne 0 ]; then
+            echo "nftables"
+          elif command -v iptables &> /dev/null; then
+            if iptables -V | grep -E ' \(nf_tables\) *$'; then
+              echo "nftables"
+            else
+              echo "iptables"
+            fi
+          fi
+        EOF
+      register: reg_fail2ban_ban_action
+
+    - name: "Override 'fail2ban_ban_action'"
+      ansible.builtin.set_fact:
+        fail2ban_ban_action: "{{ reg_fail2ban_ban_action.stdout }}"
+
+  when: fail2ban_ban_action == 'auto'
+
+- name: "Run the equivalent of 'apt-get update' as a separate step"
+  ansible.builtin.apt:
+    update_cache: yes
+  when: ansible_facts.os_family == 'Debian'
+
+- name: "Install fail2ban"
+  ansible.builtin.package:
+    name: "{{ fail2ban_packages }}"
+    state: present
+
+- ansible.builtin.include_role:
+    name: "{{ role_name }}"
+    tasks_from: "ban_action_nftables"
+  when: fail2ban_ban_action == 'nftables'
+
+- name: "Copy filters in filter.d"
+  ansible.builtin.copy:
+    src: "{{ fail2ban_filterd_path }}"
+    dest: /etc/fail2ban/filter.d/
+    owner: root
+    group: root
+    mode: "0640"
+  when:
+    - fail2ban_filterd_path is defined
+  notify:
+    - restart fail2ban
+
+- name: "Configure fail2ban.local"
+  community.general.ini_file:
+    path: "/etc/fail2ban/fail2ban.local"
+    section: "{{ item.section }}"
+    option: "{{ item.option }}"
+    value: "{{ item.value }}"
+    mode: "0640"
+  loop: "{{ fail2ban_base_configuration + fail2ban_configuration }}"
+  loop_control:
+    label: "{{ item.option }}"
+  notify:
+    - restart fail2ban
+
+- name: "Configure jail.local"
+  community.general.ini_file:
+    path: "/etc/fail2ban/jail.local"
+    section: "{{ item.section }}"
+    option: "{{ item.option }}"
+    value: "{{ item.value }}"
+    mode: "0640"
+  loop: >-
+    {%- set ns = namespace() -%}
+    {%- set ns.configs = fail2ban_base_jail_configuration + fail2ban_jail_configuration -%}
+    {%- if fail2ban_ban_action == 'nftables' -%}
+      {%- set ns.configs = ns.configs + fail2ban_base_jail_nftables_configuration -%}
+    {%- endif -%}
+    {{ ns.configs }}
+  loop_control:
+    label: "{{ item.option }}"
+  notify:
+    - restart fail2ban
+
+- name: "Stat auth log file"
+  ansible.builtin.stat:
+    path: "/var/log/auth.log"
+  register: reg_fail2ban_auth
+
+- name: "Touch auth log file if not exist"
+  ansible.builtin.file:
+    path: "/var/log/auth.log"
+    state: touch
+    mode: "0640"
+  when:
+    - reg_fail2ban_auth.stat.exists is defined
+    - not reg_fail2ban_auth.stat.exists
+
+- name: "Start and enable fail2ban"
+  ansible.builtin.systemd:
+    name: "{{ fail2ban_systemd_name }}"
+    state: started
+    enabled: true

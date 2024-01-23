@@ -1,0 +1,20 @@
+---
+
+argument_specs:
+  main:
+    short_description: "The tasks entry point for install docker."
+    options:
+      docker_proxy_addr:
+        type: "str"
+        required: false
+        description: "The proxy address (override http and https proxy)"
+
+      docker_http_proxy:
+        type: "str"
+        required: false
+        description: "The http proxy address"
+
+      docker_https_proxy:
+        type: "str"
+        required: false
+        description: "The http proxy address"

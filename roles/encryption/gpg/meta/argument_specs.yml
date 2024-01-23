@@ -1,0 +1,68 @@
+---
+
+argument_specs:
+  main:
+    short_description: "The tasks entry point for encryption role."
+    options:
+      enc_source_type:
+        type: "str"
+        required: true
+        description: "The type of encryption source"
+        choices:
+          - "file"
+          - "raw"
+
+      enc_gpg_type:
+        type: "str"
+        required: true
+        description: "The type of public key gpg encryption"
+        choices:
+          - "key_id"
+          - "public_file"
+
+  key_id:
+    short_description: "This task for encrypt data with public key id."
+    options:
+      enc_gpg_public_key_id:
+        type: "str"
+        required: true
+        description: "The public key id"
+
+  public_file:
+    short_description: "This task for encrypt data with public key path file."
+    options:
+      enc_gpg_public_key_path:
+        type: "str"
+        required: true
+        description: "The public key path file"
+
+  enc_file:
+    short_description: "This task for encrypt file."
+    options:
+      enc_file_path:
+        type: "str"
+        required: true
+        description: "The file path for encryption"
+
+      enc_remove_source:
+        type: "bool"
+        required: false
+        description: "Remove source file after encryption"
+
+      enc_gpg_dest:
+        type: "str"
+        required: false
+        description: "The file destination path for store encrypted data after encryption"
+
+  enc_raw:
+    short_description: "This task for encrypt data raw."
+    options:
+      enc_raw_data:
+        type: "str"
+        required: true
+        description: "The raw data for encryption"
+
+      enc_gpg_dest:
+        type: "str"
+        required: true
+        description: "The file destination path for store encrypted data after encryption"

@@ -1,0 +1,19 @@
+---
+
+- name: "validate | Test fail2ban_ban_time"
+  ansible.builtin.assert:
+    that:
+      - fail2ban_ban_time >= -1 and fail2ban_ban_time !=0
+    quiet: true
+
+- name: "validate | Test fail2ban_find_time"
+  ansible.builtin.assert:
+    that:
+      - fail2ban_find_time > 0
+    quiet: true
+
+- name: "validate | Test fail2ban_max_retry"
+  ansible.builtin.assert:
+    that:
+      - fail2ban_max_retry > 0
+    quiet: true

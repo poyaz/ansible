@@ -1,0 +1,44 @@
+### Input variables
+###################
+## in_proxy_addr: The proxy address (http or https)
+## in_http_proxy: The http proxy address
+## in_https_proxy: The https proxy address
+## in_remove_proxy_at_end: Remove proxy from all environment and config files (after finish all tasks in playbook)
+## in_force_remote_proxy: Forcing to remove all proxy from all environment and config files at beginning (default: false)
+
+---
+
+- hosts: "{{ host }}"
+  become: yes
+  become_user: root
+
+  gather_facts: yes
+  gather_subset:
+    - min
+
+  pre_tasks:
+    - include_role:
+        name: ansible-check-var
+        tasks_from: main
+        apply:
+          delegate_to: "localhost"
+
+  roles:
+    - role: package/proxy
+      vars:
+        package_proxy_addr: "{{ in_proxy_addr }}"
+        package_http_proxy: "{{ in_http_proxy }}"
+        package_https_proxy: "{{ in_https_proxy }}"
+        package_remove_proxy_at_end: "{{ in_remove_proxy_at_end }}"
+        package_force_remote_proxy: "{{ in_force_remote_proxy }}"
+
+    - role: docker/docker
+      vars:
+        docker_proxy_addr: "{{ in_proxy_addr }}"
+        docker_http_proxy: "{{ in_http_proxy }}"
+        docker_https_proxy: "{{ in_https_proxy }}"
+
+  post_tasks:
+    - name: "Clear package proxy"
+      command: /bin/true
+      notify: "remove apt proxy"
